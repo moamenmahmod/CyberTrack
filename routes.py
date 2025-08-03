@@ -42,13 +42,12 @@ def create_challenge():
         Challenge.query.update({'is_active': False})
         
         # Create new challenge
-        challenge = Challenge(
-            name=name,
-            duration_days=duration_days,
-            target_money=target_money,
-            target_vulnerabilities=target_vulnerabilities,
-            start_time=cairo_time
-        )
+        challenge = Challenge()
+        challenge.name = name
+        challenge.duration_days = duration_days
+        challenge.target_money = target_money
+        challenge.target_vulnerabilities = target_vulnerabilities
+        challenge.start_time = cairo_time
         
         db.session.add(challenge)
         db.session.commit()
@@ -116,14 +115,13 @@ def add_vulnerability():
         bounty_amount = float(request.form['bounty_amount'])
         description = request.form.get('description', '')
         
-        vulnerability = Vulnerability(
-            title=title,
-            severity=severity,
-            company=company,
-            bounty_amount=bounty_amount,
-            challenge_id=active_challenge.id,
-            description=description
-        )
+        vulnerability = Vulnerability()
+        vulnerability.title = title
+        vulnerability.severity = severity
+        vulnerability.company = company
+        vulnerability.bounty_amount = bounty_amount
+        vulnerability.challenge_id = active_challenge.id
+        vulnerability.description = description
         
         db.session.add(vulnerability)
         db.session.commit()
@@ -149,10 +147,14 @@ def analytics():
     # Get vulnerabilities for severity breakdown
     vulnerabilities = Vulnerability.query.filter_by(challenge_id=active_challenge.id).all()
     
+    # Calculate progress
+    progress = calculate_challenge_progress(active_challenge)
+    
     return render_template('analytics.html', 
                          challenge=active_challenge, 
                          work_sessions=work_sessions,
-                         vulnerabilities=vulnerabilities)
+                         vulnerabilities=vulnerabilities,
+                         progress=progress)
 
 @app.route('/api/log_activity', methods=['POST'])
 def log_activity():
@@ -163,10 +165,9 @@ def log_activity():
     
     try:
         # Log activity
-        activity = ActivityLog(
-            challenge_id=active_challenge.id,
-            timestamp=datetime.utcnow()
-        )
+        activity = ActivityLog()
+        activity.challenge_id = active_challenge.id
+        activity.timestamp = datetime.utcnow()
         db.session.add(activity)
         
         # Update daily work session
@@ -181,11 +182,10 @@ def log_activity():
             session.minutes_worked += 5
         else:
             # Create new session
-            work_session = WorkSession(
-                challenge_id=active_challenge.id,
-                date=today,
-                minutes_worked=5
-            )
+            work_session = WorkSession()
+            work_session.challenge_id = active_challenge.id
+            work_session.date = today
+            work_session.minutes_worked = 5
             db.session.add(work_session)
         
         # Update total work minutes in challenge

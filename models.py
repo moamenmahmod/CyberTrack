@@ -1,25 +1,23 @@
 from datetime import datetime
 from app import db
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Date, Text, ForeignKey
-from sqlalchemy.orm import relationship
 
 class Challenge(db.Model):
     __tablename__ = 'challenges'
     
-    id = Column(Integer, primary_key=True)
-    name = Column(String(255), nullable=False)
-    duration_days = Column(Integer, nullable=False)
-    target_money = Column(Float, nullable=True)
-    target_vulnerabilities = Column(Integer, nullable=True)
-    start_time = Column(DateTime, nullable=False, default=datetime.utcnow)
-    is_active = Column(Boolean, nullable=False, default=True)
-    total_work_minutes = Column(Integer, nullable=False, default=0)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    duration_days = db.Column(db.Integer, nullable=False)
+    target_money = db.Column(db.Float, nullable=True)
+    target_vulnerabilities = db.Column(db.Integer, nullable=True)
+    start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    total_work_minutes = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     
     # Relationships
-    vulnerabilities = relationship("Vulnerability", back_populates="challenge", cascade="all, delete-orphan")
-    work_sessions = relationship("WorkSession", back_populates="challenge", cascade="all, delete-orphan")
-    activity_logs = relationship("ActivityLog", back_populates="challenge", cascade="all, delete-orphan")
+    vulnerabilities = db.relationship("Vulnerability", back_populates="challenge", cascade="all, delete-orphan")
+    work_sessions = db.relationship("WorkSession", back_populates="challenge", cascade="all, delete-orphan")
+    activity_logs = db.relationship("ActivityLog", back_populates="challenge", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f'<Challenge {self.name}>'
@@ -27,18 +25,18 @@ class Challenge(db.Model):
 class Vulnerability(db.Model):
     __tablename__ = 'vulnerabilities'
     
-    id = Column(Integer, primary_key=True)
-    title = Column(String(500), nullable=False)
-    severity = Column(String(50), nullable=False)  # Critical, High, Medium, Low
-    company = Column(String(255), nullable=False)
-    bounty_amount = Column(Float, nullable=False, default=0.0)
-    challenge_id = Column(Integer, ForeignKey('challenges.id'), nullable=False)
-    description = Column(Text, nullable=True)
-    reported_date = Column(DateTime, nullable=False, default=datetime.utcnow)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(500), nullable=False)
+    severity = db.Column(db.String(50), nullable=False)  # Critical, High, Medium, Low
+    company = db.Column(db.String(255), nullable=False)
+    bounty_amount = db.Column(db.Float, nullable=False, default=0.0)
+    challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id'), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    reported_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     
     # Relationships
-    challenge = relationship("Challenge", back_populates="vulnerabilities")
+    challenge = db.relationship("Challenge", back_populates="vulnerabilities")
     
     def __repr__(self):
         return f'<Vulnerability {self.title}>'
@@ -46,14 +44,14 @@ class Vulnerability(db.Model):
 class WorkSession(db.Model):
     __tablename__ = 'work_sessions'
     
-    id = Column(Integer, primary_key=True)
-    challenge_id = Column(Integer, ForeignKey('challenges.id'), nullable=False)
-    date = Column(Date, nullable=False)
-    minutes_worked = Column(Integer, nullable=False, default=0)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    id = db.Column(db.Integer, primary_key=True)
+    challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    minutes_worked = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     
     # Relationships
-    challenge = relationship("Challenge", back_populates="work_sessions")
+    challenge = db.relationship("Challenge", back_populates="work_sessions")
     
     def __repr__(self):
         return f'<WorkSession {self.date} - {self.minutes_worked}min>'
@@ -61,14 +59,14 @@ class WorkSession(db.Model):
 class ActivityLog(db.Model):
     __tablename__ = 'activity_logs'
     
-    id = Column(Integer, primary_key=True)
-    challenge_id = Column(Integer, ForeignKey('challenges.id'), nullable=False)
-    timestamp = Column(DateTime, nullable=False, default=datetime.utcnow)
-    activity_type = Column(String(50), nullable=False, default='work')
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    id = db.Column(db.Integer, primary_key=True)
+    challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    activity_type = db.Column(db.String(50), nullable=False, default='work')
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     
     # Relationships
-    challenge = relationship("Challenge", back_populates="activity_logs")
+    challenge = db.relationship("Challenge", back_populates="activity_logs")
     
     def __repr__(self):
         return f'<ActivityLog {self.timestamp}>'
