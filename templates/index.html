@@ -93,8 +93,8 @@
                         <div class="progress cyber-progress">
                             <div class="progress-bar bg-cyber-gradient" 
                                  role="progressbar" 
-                                 style="width: {{ stats.progress }}%"
-                                 aria-valuenow="{{ stats.progress }}" 
+                                 style="width: {{ "%.1f"|format(stats.progress) }}%"
+                                 aria-valuenow="{{ "%.1f"|format(stats.progress) }}" 
                                  aria-valuemin="0" 
                                  aria-valuemax="100">
                             </div>

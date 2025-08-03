@@ -131,11 +131,11 @@
                         <h6 class="cyber-text-glow">Time Progress</h6>
                         <div class="progress cyber-progress mb-2">
                             <div class="progress-bar bg-cyber-gradient" 
-                                 style="width: {{ "%.1f"|format(((challenge.start_time|string|length > 0) and ((now() - challenge.start_time).days / challenge.duration_days * 100)) or 0) }}%">
+                                 style="width: {{ "%.1f"|format(progress) }}%">
                             </div>
                         </div>
                         <small class="text-muted">
-                            Day {{ ((now() - challenge.start_time).days + 1) if challenge.start_time else 1 }} of {{ challenge.duration_days }}
+                            Day 1 of {{ challenge.duration_days }}
                         </small>
                     </div>
                     
@@ -143,8 +143,13 @@
                     <div class="progress-section mb-4">
                         <h6 class="cyber-text-glow">Vulnerability Goal</h6>
                         <div class="progress cyber-progress mb-2">
+                            {% set vuln_progress = 0 %}
+                            {% if challenge.target_vulnerabilities and challenge.target_vulnerabilities > 0 %}
+                                {% set vuln_progress = (vulnerabilities|length / challenge.target_vulnerabilities * 100) %}
+                                {% set vuln_progress = [vuln_progress, 100]|min %}
+                            {% endif %}
                             <div class="progress-bar bg-success" 
-                                 style="width: {{ "%.1f"|format((vulnerabilities|length / challenge.target_vulnerabilities * 100) if challenge.target_vulnerabilities > 0 else 0) }}%">
+                                 style="width: {{ "%.1f"|format(vuln_progress) }}%">
                             </div>
                         </div>
                         <small class="text-muted">
@@ -157,12 +162,21 @@
                     <div class="progress-section">
                         <h6 class="cyber-text-glow">Earnings Goal</h6>
                         <div class="progress cyber-progress mb-2">
+                            {% set total_earnings = 0 %}
+                            {% for vuln in vulnerabilities %}
+                                {% set total_earnings = total_earnings + vuln.bounty_amount %}
+                            {% endfor %}
+                            {% set money_progress = 0 %}
+                            {% if challenge.target_money and challenge.target_money > 0 %}
+                                {% set money_progress = (total_earnings / challenge.target_money * 100) %}
+                                {% set money_progress = [money_progress, 100]|min %}
+                            {% endif %}
                             <div class="progress-bar bg-warning" 
-                                 style="width: {{ "%.1f"|format(((vulnerabilities|sum(attribute='bounty_amount') or 0) / challenge.target_money * 100) if challenge.target_money > 0 else 0) }}%">
+                                 style="width: {{ "%.1f"|format(money_progress) }}%">
                             </div>
                         </div>
                         <small class="text-muted">
-                            ${{ "%.2f"|format(vulnerabilities|sum(attribute='bounty_amount') or 0) }} of ${{ "%.2f"|format(challenge.target_money) }}
+                            ${{ "%.2f"|format(total_earnings) }} of ${{ "%.2f"|format(challenge.target_money) }}
                         </small>
                     </div>
                     {% endif %}
@@ -257,11 +271,13 @@
 <script>
 {% if challenge and work_sessions %}
 // Prepare data for charts
-const workSessionsData = {{ work_sessions|tojson }};
-const vulnerabilitiesData = {{ vulnerabilities|tojson }};
+const workSessionsData = {{ work_sessions|tojson|safe }};
+const vulnerabilitiesData = {{ vulnerabilities|tojson|safe }};
 
 // Initialize charts
-initializeCharts(workSessionsData, vulnerabilitiesData);
+if (typeof initializeCharts === 'function') {
+    initializeCharts(workSessionsData, vulnerabilitiesData);
+}
 {% endif %}
 </script>
 {% endblock %}
