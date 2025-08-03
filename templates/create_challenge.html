@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if edit_mode else 'Create' }} Challenge{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="cyber-card">
+                <div class="card-header text-center">
+                    <h2 class="cyber-text-glow mb-0">
+                        <i class="fas fa-{{ 'edit' if edit_mode else 'plus-circle' }} me-2"></i>
+                        {{ 'Edit Challenge' if edit_mode else 'Create New Challenge' }}
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="cyber-form">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="name" class="form-label cyber-label">
+                                        <i class="fas fa-tag me-2"></i>Challenge Name
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control cyber-input" 
+                                           id="name" 
+                                           name="name" 
+                                           value="{{ challenge.name if edit_mode else '' }}"
+                                           placeholder="Enter challenge name"
+                                           required>
+                                    <div class="form-text">Give your challenge a memorable name</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="duration_days" class="form-label cyber-label">
+                                        <i class="fas fa-calendar-alt me-2"></i>Duration (Days)
+                                    </label>
+                                    <input type="number" 
+                                           class="form-control cyber-input" 
+                                           id="duration_days" 
+                                           name="duration_days" 
+                                           value="{{ challenge.duration_days if edit_mode else '' }}"
+                                           placeholder="30"
+                                           min="1" 
+                                           max="365"
+                                           required>
+                                    <div class="form-text">How many days will this challenge last?</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="target_money" class="form-label cyber-label">
+                                        <i class="fas fa-dollar-sign me-2"></i>Target Earnings (Optional)
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text cyber-input-addon">$</span>
+                                        <input type="number" 
+                                               class="form-control cyber-input" 
+                                               id="target_money" 
+                                               name="target_money" 
+                                               value="{{ challenge.target_money if edit_mode and challenge.target_money else '' }}"
+                                               placeholder="1000.00"
+                                               step="0.01" 
+                                               min="0">
+                                    </div>
+                                    <div class="form-text">Set a monetary goal for this challenge</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="target_vulnerabilities" class="form-label cyber-label">
+                                        <i class="fas fa-bug me-2"></i>Target Vulnerabilities (Optional)
+                                    </label>
+                                    <input type="number" 
+                                           class="form-control cyber-input" 
+                                           id="target_vulnerabilities" 
+                                           name="target_vulnerabilities" 
+                                           value="{{ challenge.target_vulnerabilities if edit_mode and challenge.target_vulnerabilities else '' }}"
+                                           placeholder="10"
+                                           min="1">
+                                    <div class="form-text">How many vulnerabilities do you aim to find?</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Info Card -->
+                        <div class="alert alert-info cyber-alert mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-info-circle me-3 fs-4"></i>
+                                <div>
+                                    <h6 class="alert-heading mb-1">Challenge Information</h6>
+                                    <p class="mb-0">
+                                        {% if edit_mode %}
+                                        Your challenge settings will be updated. The start time and tracking data will remain unchanged.
+                                        {% else %}
+                                        Your challenge will start immediately with Cairo, Egypt time synchronization. 
+                                        Activity tracking will begin automatically to monitor your work sessions.
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('index') }}" class="btn btn-cyber-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-cyber-primary btn-lg">
+                                <i class="fas fa-{{ 'save' if edit_mode else 'rocket' }} me-2"></i>
+                                {{ 'Update Challenge' if edit_mode else 'Start Challenge' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="cyber-card mt-4">
+                <div class="card-header">
+                    <h5 class="cyber-text-glow mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Tips for Success
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Set realistic and achievable goals
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Keep your browser tab open for activity tracking
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Regularly log your vulnerabilities
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Use the pause/resume feature when needed
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Review analytics to track progress
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Celebrate small wins and milestones
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

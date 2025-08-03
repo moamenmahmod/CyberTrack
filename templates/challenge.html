@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}{{ challenge.name }} - Challenge{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Challenge Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="cyber-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="cyber-text-glow mb-0">
+                        <i class="fas fa-crosshairs me-2"></i>
+                        {{ challenge.name }}
+                    </h2>
+                    <div class="d-flex gap-2">
+                        <button id="pauseResumeBtn" class="btn btn-cyber-warning">
+                            <i class="fas fa-pause me-1"></i>
+                            <span id="pauseResumeText">Pause Tracking</span>
+                        </button>
+                        <a href="{{ url_for('edit_challenge', challenge_id=challenge._id) }}" class="btn btn-cyber-secondary">
+                            <i class="fas fa-edit me-1"></i>Edit
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Countdown Timers -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <h4 class="cyber-text-glow mb-0">
+                        <i class="fas fa-clock me-2"></i>
+                        Challenge Countdown
+                    </h4>
+                </div>
+                <div class="card-body text-center">
+                    <div id="challengeCountdown" class="countdown-display">
+                        <div class="countdown-item">
+                            <span id="days" class="countdown-number">0</span>
+                            <span class="countdown-label">Days</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span id="hours" class="countdown-number">0</span>
+                            <span class="countdown-label">Hours</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span id="minutes" class="countdown-number">0</span>
+                            <span class="countdown-label">Minutes</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span id="seconds" class="countdown-number">0</span>
+                            <span class="countdown-label">Seconds</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <h4 class="cyber-text-glow mb-0">
+                        <i class="fas fa-calendar-day me-2"></i>
+                        Today's Progress
+                    </h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="daily-stats">
+                        <div class="stat-item">
+                            <div class="stat-value cyber-text-glow">
+                                {{ "%.1f"|format(today_stats.hours_worked) }}h
+                            </div>
+                            <div class="stat-label">Work Time Today</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value cyber-text-glow">
+                                <span id="dailyCountdown">00:00:00</span>
+                            </div>
+                            <div class="stat-label">Time Left Today</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Overview -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="cyber-card">
+                <div class="card-body text-center">
+                    <div class="cyber-icon-large text-success mb-3">
+                        <i class="fas fa-bug"></i>
+                    </div>
+                    <h3 class="cyber-text-glow">{{ total_vulns }}</h3>
+                    <p class="text-muted">Vulnerabilities Found</p>
+                    {% if challenge.target_vulnerabilities %}
+                    <small class="text-muted">
+                        Target: {{ challenge.target_vulnerabilities }}
+                        ({{ "%.1f"|format((total_vulns / challenge.target_vulnerabilities) * 100) }}%)
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="cyber-card">
+                <div class="card-body text-center">
+                    <div class="cyber-icon-large text-warning mb-3">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h3 class="cyber-text-glow">${{ "%.2f"|format(total_earnings) }}</h3>
+                    <p class="text-muted">Total Earnings</p>
+                    {% if challenge.target_money %}
+                    <small class="text-muted">
+                        Target: ${{ "%.2f"|format(challenge.target_money) }}
+                        ({{ "%.1f"|format((total_earnings / challenge.target_money) * 100) }}%)
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="cyber-card">
+                <div class="card-body text-center">
+                    <div class="cyber-icon-large text-info mb-3">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="cyber-text-glow">{{ "%.1f"|format(progress) }}%</h3>
+                    <p class="text-muted">Challenge Progress</p>
+                    <div class="progress cyber-progress mt-2">
+                        <div class="progress-bar bg-cyber-gradient" 
+                             style="width: {{ progress }}%"
+                             role="progressbar">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Vulnerabilities -->
+    <div class="row">
+        <div class="col-12">
+            <div class="cyber-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="cyber-text-glow mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Recent Vulnerabilities
+                    </h4>
+                    <a href="{{ url_for('vulnerabilities') }}" class="btn btn-cyber-primary">
+                        <i class="fas fa-plus me-1"></i>Add Vulnerability
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if vulnerabilities %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover cyber-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Severity</th>
+                                    <th>Company</th>
+                                    <th>Bounty</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vuln in vulnerabilities[:5] %}
+                                <tr>
+                                    <td><strong>{{ vuln.title }}</strong></td>
+                                    <td>
+                                        <span class="badge bg-{{ 'danger' if vuln.severity == 'Critical' else 'warning' if vuln.severity == 'High' else 'info' if vuln.severity == 'Medium' else 'secondary' }}">
+                                            {{ vuln.severity }}
+                                        </span>
+                                    </td>
+                                    <td>{{ vuln.company }}</td>
+                                    <td class="text-success">${{ "%.2f"|format(vuln.bounty_amount) }}</td>
+                                    <td>{{ vuln.reported_date.strftime('%Y-%m-%d') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if vulnerabilities|length > 5 %}
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('vulnerabilities') }}" class="btn btn-outline-primary">
+                            View All Vulnerabilities ({{ vulnerabilities|length }})
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="text-center py-4">
+                        <div class="cyber-icon-large text-muted mb-3">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h5 class="text-muted">No vulnerabilities recorded yet</h5>
+                        <p class="text-muted">Start by adding your first security finding!</p>
+                        <a href="{{ url_for('vulnerabilities') }}" class="btn btn-cyber-primary">
+                            <i class="fas fa-plus me-2"></i>Add First Vulnerability
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activity Status Indicator -->
+<div id="activityStatus" class="activity-status">
+    <i class="fas fa-circle text-success"></i>
+    <span>Tracking Active</span>
+</div>
+
+<script>
+// Initialize countdown and activity tracking for this challenge
+const challengeId = "{{ challenge._id }}";
+let isTrackingPaused = false;
+
+// Load challenge data and start countdown
+fetch(`/api/challenge_data/${challengeId}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error('Error loading challenge data:', data.error);
+            return;
+        }
+        
+        const endTime = new Date(data.end_time);
+        startCountdown(endTime);
+        startDailyCountdown();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+
+// Pause/Resume tracking
+document.getElementById('pauseResumeBtn').addEventListener('click', function() {
+    isTrackingPaused = !isTrackingPaused;
+    const btn = this;
+    const text = document.getElementById('pauseResumeText');
+    const icon = btn.querySelector('i');
+    const status = document.getElementById('activityStatus');
+    
+    if (isTrackingPaused) {
+        text.textContent = 'Resume Tracking';
+        icon.className = 'fas fa-play me-1';
+        btn.className = 'btn btn-cyber-success';
+        status.innerHTML = '<i class="fas fa-circle text-warning"></i><span>Tracking Paused</span>';
+        stopActivityTracking();
+    } else {
+        text.textContent = 'Pause Tracking';
+        icon.className = 'fas fa-pause me-1';
+        btn.className = 'btn btn-cyber-warning';
+        status.innerHTML = '<i class="fas fa-circle text-success"></i><span>Tracking Active</span>';
+        startActivityTracking();
+    }
+});
+
+function startCountdown(endTime) {
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const distance = endTime.getTime() - now;
+        
+        if (distance < 0) {
+            document.getElementById('challengeCountdown').innerHTML = 
+                '<div class="text-warning"><i class="fas fa-flag-checkered me-2"></i>Challenge Completed!</div>';
+            return;
+        }
+        
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        
+        document.getElementById('days').textContent = days;
+        document.getElementById('hours').textContent = hours;
+        document.getElementById('minutes').textContent = minutes;
+        document.getElementById('seconds').textContent = seconds;
+    }
+    
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+}
+
+function startDailyCountdown() {
+    function updateDailyCountdown() {
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(now.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        
+        const distance = tomorrow.getTime() - now.getTime();
+        
+        const hours = Math.floor(distance / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        
+        document.getElementById('dailyCountdown').textContent = 
+            `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    updateDailyCountdown();
+    setInterval(updateDailyCountdown, 1000);
+}
+</script>
+{% endblock %}

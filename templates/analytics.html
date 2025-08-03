@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <h2 class="cyber-text-glow mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Analytics Dashboard
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if challenge %}
+    <!-- Summary Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <h4>{{ "%.1f"|format((challenge.total_work_minutes or 0) / 60) }}h</h4>
+                    <p>Total Work Time</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <h4>{{ vulnerabilities|length }}</h4>
+                    <p>Total Vulnerabilities</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-content">
+                    <h4>${{ "%.2f"|format(vulnerabilities|sum(attribute='bounty_amount') or 0) }}</h4>
+                    <p>Total Earnings</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-info">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-content">
+                    <h4>{{ work_sessions|length }}</h4>
+                    <p>Work Days</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Daily Work Hours Chart -->
+        <div class="col-lg-8">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <h4 class="cyber-text-glow mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Daily Work Hours
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="workHoursChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Severity Breakdown -->
+        <div class="col-lg-4">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <h4 class="cyber-text-glow mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Severity Breakdown
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="severityChart" width="200" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Earnings and Progress Row -->
+    <div class="row mb-4">
+        <!-- Weekly Earnings -->
+        <div class="col-lg-6">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <h4 class="cyber-text-glow mb-0">
+                        <i class="fas fa-dollar-sign me-2"></i>
+                        Earnings Over Time
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="earningsChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Progress Tracking -->
+        <div class="col-lg-6">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <h4 class="cyber-text-glow mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Challenge Progress
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="progress-section mb-4">
+                        <h6 class="cyber-text-glow">Time Progress</h6>
+                        <div class="progress cyber-progress mb-2">
+                            <div class="progress-bar bg-cyber-gradient" 
+                                 style="width: {{ "%.1f"|format(((challenge.start_time|string|length > 0) and ((now() - challenge.start_time).days / challenge.duration_days * 100)) or 0) }}%">
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            Day {{ ((now() - challenge.start_time).days + 1) if challenge.start_time else 1 }} of {{ challenge.duration_days }}
+                        </small>
+                    </div>
+                    
+                    {% if challenge.target_vulnerabilities %}
+                    <div class="progress-section mb-4">
+                        <h6 class="cyber-text-glow">Vulnerability Goal</h6>
+                        <div class="progress cyber-progress mb-2">
+                            <div class="progress-bar bg-success" 
+                                 style="width: {{ "%.1f"|format((vulnerabilities|length / challenge.target_vulnerabilities * 100) if challenge.target_vulnerabilities > 0 else 0) }}%">
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            {{ vulnerabilities|length }} of {{ challenge.target_vulnerabilities }} vulnerabilities
+                        </small>
+                    </div>
+                    {% endif %}
+                    
+                    {% if challenge.target_money %}
+                    <div class="progress-section">
+                        <h6 class="cyber-text-glow">Earnings Goal</h6>
+                        <div class="progress cyber-progress mb-2">
+                            <div class="progress-bar bg-warning" 
+                                 style="width: {{ "%.1f"|format(((vulnerabilities|sum(attribute='bounty_amount') or 0) / challenge.target_money * 100) if challenge.target_money > 0 else 0) }}%">
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            ${{ "%.2f"|format(vulnerabilities|sum(attribute='bounty_amount') or 0) }} of ${{ "%.2f"|format(challenge.target_money) }}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Statistics -->
+    <div class="row">
+        <div class="col-12">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <h4 class="cyber-text-glow mb-0">
+                        <i class="fas fa-table me-2"></i>
+                        Work Session Details
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if work_sessions %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover cyber-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Work Time</th>
+                                    <th>Efficiency</th>
+                                    <th>Vulnerabilities</th>
+                                    <th>Earnings</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in work_sessions %}
+                                {% set day_vulns = vulnerabilities|selectattr("reported_date")|selectattr("reported_date", "equalto", session.date)|list %}
+                                {% set day_earnings = day_vulns|sum(attribute='bounty_amount') or 0 %}
+                                <tr>
+                                    <td>{{ session.date.strftime('%Y-%m-%d') if session.date.strftime else session.date }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            {{ "%.1f"|format(session.minutes_worked / 60) }}h
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% set efficiency = (day_vulns|length / (session.minutes_worked / 60)) if session.minutes_worked > 0 else 0 %}
+                                        <span class="badge bg-{{ 'success' if efficiency > 0.5 else 'warning' if efficiency > 0.2 else 'secondary' }}">
+                                            {{ "%.2f"|format(efficiency) }} vulns/h
+                                        </span>
+                                    </td>
+                                    <td>{{ day_vulns|length }}</td>
+                                    <td class="text-success">${{ "%.2f"|format(day_earnings) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <div class="cyber-icon-large text-muted mb-3">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h5 class="text-muted">No work data available</h5>
+                        <p class="text-muted">Start working on your challenge to see analytics!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- No Active Challenge -->
+    <div class="row">
+        <div class="col-12">
+            <div class="cyber-card">
+                <div class="card-body text-center py-5">
+                    <div class="cyber-icon-large text-muted mb-3">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4 class="text-muted">No Active Challenge</h4>
+                    <p class="text-muted">Create and activate a challenge to view analytics.</p>
+                    <a href="{{ url_for('create_challenge') }}" class="btn btn-cyber-primary">
+                        <i class="fas fa-plus me-2"></i>Create Challenge
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+{% if challenge and work_sessions %}
+// Prepare data for charts
+const workSessionsData = {{ work_sessions|tojson }};
+const vulnerabilitiesData = {{ vulnerabilities|tojson }};
+
+// Initialize charts
+initializeCharts(workSessionsData, vulnerabilitiesData);
+{% endif %}
+</script>
+{% endblock %}
